@@ -10,6 +10,10 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
+    env:
+      ANDROID_HOME: ${{ github.workspace }}/android-sdk
+      ANDROID_SDK_ROOT: ${{ github.workspace }}/android-sdk
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
@@ -21,14 +25,16 @@ jobs:
         distribution: 'temurin'
         cache: gradle
 
+    - name: Install Android SDK
+      run: |
+        mkdir -p $ANDROID_HOME
+        sdkmanager "platforms;android-34" "build-tools;34.0.0" "platform-tools"
+
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
 
-    - name: Setup Android SDK
-      uses: android-actions/setup-android@v3
-
-    - name: Download Dependencies and Build
-      run: ./gradlew assembleDebug --info
+    - name: Build Debug APK
+      run: ./gradlew :app:assembleDebug --no-daemon --stacktrace
 
     - name: Upload APK artifact
       uses: actions/upload-artifact@v4
